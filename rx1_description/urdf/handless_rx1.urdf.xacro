@@ -637,28 +637,7 @@
             <parent link="${prefix}_forearm_pitch_link" />
             <child link="${prefix}_forearm_roll_link" />
         </joint>
-
-        <!-- First include the hand URDFs -->
-        <xacro:if value="${prefix == 'right'}">
-            <xacro:include filename="$(find rx1_description)/urdf/leap_right.urdf"/>
-        </xacro:if>
-        <xacro:if value="${prefix == 'left'}">
-            <xacro:include filename="$(find rx1_description)/urdf/leap_left.urdf"/>
-        </xacro:if>
-
-        <!-- Connect to the already defined hand -->
-        <joint name="${prefix}_forearm_roll2palm_joint" type="fixed">
-            <xacro:if value="${prefix == 'right'}">
-                <origin xyz="0 0.04 -0.15" rpy="0 ${pi/2} 0"/>
-                <parent link="${prefix}_forearm_roll_link"/>
-                <child link="right_palm_lower"/>
-            </xacro:if>
-            <xacro:if value="${prefix == 'left'}">
-                <origin xyz="0 0.05 -0.22" rpy="0 ${pi/2} 0"/>
-                <parent link="${prefix}_forearm_roll_link"/>
-                <child link="left_palm_lower"/>
-            </xacro:if>
-        </joint>
+    
     </xacro:macro>
 
     <xacro:arm prefix="right" side="1" />
