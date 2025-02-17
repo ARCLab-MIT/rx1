@@ -16,4 +16,6 @@
   <exec_depend>rx1_description</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
+  <build_depend>rosbridge_server</build_depend>
+  <exec_depend>rosbridge_server</exec_depend>
 </package>

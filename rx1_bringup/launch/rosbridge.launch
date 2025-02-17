@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- WebSocket port -->
+    <arg name="port" default="9090"/>
+    
+    <!-- Start rosbridge server -->
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+        <arg name="port" value="$(arg port)"/>
+        <!-- Set buffer size -->
+        <arg name="max_message_size" value="10000000"/>
+    </include>
+    
+    <!-- Optional: TF2 Web Publisher -->
+    <node pkg="tf2_web_republisher" type="tf2_web_republisher" name="tf2_web_republisher"/>
+</launch>
