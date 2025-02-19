@@ -32,3 +32,7 @@ include_directories(
 install(DIRECTORY meshes rviz urdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
+catkin_install_python(PROGRAMS
+  scripts/ros_zmq_bridge.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

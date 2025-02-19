@@ -1,0 +1,23 @@
+<launch>
+    <!-- Load Gazebo with robot -->
+    <include file="$(find rx1_gazebo)/launch/rx1_gazebo.launch"/>
+
+    <!-- Start IK solver node -->
+    <include file="$(find rx1_ik)/launch/rx1_ik_traj.launch"/>
+
+    <!-- Start ZMQ bridge with additional parameters -->
+    <node name="zmq_bridge" pkg="rx1_gazebo" type="ros_zmq_bridge.py" output="screen" respawn="false">
+        <!-- Network parameters -->
+        <param name="bind_address" value="*"/>
+        <param name="host" value="10.29.190.204"/>
+        <param name="cartesian_port" value="9118"/>
+        <param name="joint_port" value="9119"/>
+        <param name="command_port" value="5555"/>
+        
+        <!-- Performance parameters -->
+        <param name="debug" value="true"/>
+        <param name="connection_timeout" value="5.0"/>
+        <param name="heartbeat_interval" value="1.0"/>
+        <param name="max_rate" value="100"/>
+    </node>
+</launch>

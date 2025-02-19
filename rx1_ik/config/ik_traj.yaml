@@ -1,5 +1,6 @@
 #ik config for rviz interactive marker
 
+chain_start: "base_link"
 chain_r_end: "right_forearm_roll_link"
 chain_l_end: "left_forearm_roll_link"
 eps: 0.01
