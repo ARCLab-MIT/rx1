@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+    <!--    Start the IK to Arm controller test node -->
+    <node name="ik_to_arm_controller" pkg="rx1_gazebo" type="ik_to_arm.py" output="screen">
+        <!-- Add any parameters if needed -->
+        <param name="update_rate" value="100.0"/>  <!-- Hz -->
+    </node>
+</launch>

@@ -3,8 +3,8 @@ joint_state_controller:
   publish_rate: 50
 
 # Arm position controller for the right arm
-right_arm_position_controller:
-  type: effort_controllers/JointTrajectoryController
+right_arm_controller:
+  type: position_controllers/JointTrajectoryController
   joints:
     - right_shoul_base2shoul_joint
     - right_shoul2shoul_rot_joint
@@ -96,29 +96,11 @@ left_arm_position_controller:
 
 # # Torso Position Controller
 # torso_position_controller:
-#   type: effort_controllers/JointTrajectoryController
+#   type: effort_controllers/JointPositionController
 #   joints:
 #     - base2torso_yaw_joint
-#     - torso_yaw2pitch_joint
-#     - torso_pitch2roll_joint
-
-#   constraints:
-#     goal_time: 0.5
-#     stopped_velocity_tolerance: 0.02
-#     base2torso_yaw_joint:
-#       trajectory: 1.0
-#       goal: 0.5
-#     torso_yaw2pitch_joint:
-#       trajectory: 1.0
-#       goal: 0.5
-#     torso_pitch2roll_joint:
-#       trajectory: 1.0
-#       goal: 0.5
-
 #   gains:
 #     base2torso_yaw_joint: {p: 100, i: 1, d: 0.001}
-#     torso_yaw2pitch_joint: {p: 200, i: 10, d: 0.001}
-#     torso_pitch2roll_joint: {p: 200, i: 10, d: 0.001}
 
 # # Head Position Controller
 # head_position_controller:

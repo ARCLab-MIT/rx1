@@ -16,4 +16,7 @@
   <depend>sensor_msgs</depend>
   <depend>tf</depend>
   <depend>zmq</depend>
+  <depend>moveit_commander</depend>
+  <depend>moveit_ros_planning_interface</depend>
+
 </package>

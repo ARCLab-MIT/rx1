@@ -5,6 +5,9 @@
     <!-- Start IK solver node -->
     <include file="$(find rx1_ik)/launch/rx1_ik_traj.launch"/>
 
+    <!-- Start IK to arm node -->
+    <include file="$(find rx1_gazebo)/launch/ik_to_arm.launch"/>    
+
     <!-- Start ZMQ bridge with additional parameters -->
     <node name="zmq_bridge" pkg="rx1_gazebo" type="ros_zmq_bridge.py" output="screen" respawn="false">
         <!-- Network parameters -->

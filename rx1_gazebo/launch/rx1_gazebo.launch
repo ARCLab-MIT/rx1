@@ -14,7 +14,7 @@
 
     <!-- startup simulated WORLD -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="world_name" value="$(find rx1_gazebo)/worlds/table_world.world"/>
+        <arg name="world_name" value="$(find rx1_gazebo)/worlds/empty.world"/>
         <arg name="paused" value="$(arg paused)" />
         <arg name="use_sim_time" value="$(arg use_sim_time)" />
         <arg name="gui" value="$(arg gui)" />
@@ -32,15 +32,16 @@
    
 
     <!-- Load joint controller configurations from YAML file to parameter server -->
-    <rosparam file="$(find rx1_gazebo)/config/rx1_control.yaml" command="load" />
-  
-    <!-- load the controllers -->
+    <rosparam file="$(find rx1_gazebo)/config/rx1_control.yaml" command="load"/>
+
+    <!-- Load the controllers -->
     <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-      output="screen" ns="/" args="joint_state_controller right_arm_position_controller left_arm_position_controller torso_position_controller head_position_controller" />
-  
-    <!-- convert joint states to TF transforms for rviz, etc -->
-    <node name="state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+      output="screen" ns="/rx1" args="joint_state_controller right_arm_controller"/>
+
+    <!-- Convert joint states to TF transforms -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
       respawn="false" output="screen">
+      <remap from="/joint_states" to="/rx1/joint_states"/>
     </node>
 
     <node pkg="tf" type="static_transform_publisher" name="world_broadcaster" args = "0 0 0 0 0 0 world base_link 10" />

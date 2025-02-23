@@ -7,10 +7,13 @@ import sys
 def test_ik_poses():
     rospy.init_node('test_ik_poses', anonymous=True)
     
-    # Initialize MoveIt
+    # Initialize MoveIt just to get current pose
     moveit_commander.roscpp_initialize(sys.argv)
     robot = moveit_commander.RobotCommander()
     group = moveit_commander.MoveGroupCommander("right_arm")
+    
+    # Create publisher for poses
+    pose_pub = rospy.Publisher('/right_gripper_pose', PoseStamped, queue_size=1)
     
     # Get current pose and workspace details
     current_pose = group.get_current_pose().pose
@@ -84,19 +87,11 @@ def test_ik_poses():
         target_pose.pose.orientation.w = test_pose['orient'][3]
 
         rospy.loginfo("\n" + "="*50)
-        rospy.loginfo(f"Moving to pose {current_pose_idx + 1}/{len(test_poses)}")
+        rospy.loginfo(f"Publishing pose {current_pose_idx + 1}/{len(test_poses)}")
         rospy.loginfo(f"Position: x={target_pose.pose.position.x:.3f}, y={target_pose.pose.position.y:.3f}, z={target_pose.pose.position.z:.3f}")
         
-        # Plan and execute movement
-        group.set_pose_target(target_pose)
-        plan_success = group.go(wait=True)  # This plans and executes
-        group.stop()  # Ensures no residual movement
-        group.clear_pose_targets()  # Cleans up
-        
-        if plan_success:
-            rospy.loginfo("Successfully moved to target pose")
-        else:
-            rospy.logwarn("Failed to move to target pose")
+        # Publish the pose instead of executing it
+        pose_pub.publish(target_pose)
         
         # Move to next pose
         current_pose_idx = (current_pose_idx + 1) % len(test_poses)

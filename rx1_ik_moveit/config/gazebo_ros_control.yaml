@@ -1,0 +1,9 @@
+gazebo_ros_control:
+  pid_gains:
+    right_shoul_base2shoul_joint: {p: 100, i: 1, d: 0.001}
+    right_shoul2shoul_rot_joint: {p: 100, i: 1, d: 0.1}
+    right_arm2armrot_joint: {p: 100, i: 1, d: 0.001}
+    right_armrot2elbow_joint: {p: 100, i: 1, d: 0.001}
+    right_forearm2forearmrot_joint: {p: 100, i: 1, d: 0.001}
+    right_forearmrot2forearm_pitch_joint: {p: 100, i: 1, d: 0.001}
+    right_forearm_pitch2forearm_roll_joint: {p: 100, i: 1, d: 0.001}

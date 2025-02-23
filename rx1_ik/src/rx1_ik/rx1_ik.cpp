@@ -24,7 +24,7 @@ Rx1Ik::Rx1Ik(ros::NodeHandle& nh, ros::NodeHandle& priv_nh)
         double ik_timeout;
         double eps;
 
-        priv_nh_.param("chain_start", chain_start_, std::string("base_link"));
+        priv_nh_.param("chain_start", chain_start_, std::string("head_base_link"));
         priv_nh_.param("chain_r_end", chain_r_end_, std::string("right_hand_link"));
         priv_nh_.param("chain_l_end", chain_l_end_, std::string("left_hand_link"));
         priv_nh_.param("urdf_param", urdf_param_, std::string("/robot_description"));
@@ -292,11 +292,6 @@ void Rx1Ik::markerLeftCallback(const visualization_msgs::InteractiveMarkerFeedba
 
 void Rx1Ik::rightGripperPoseCallback(const geometry_msgs::Pose& msg)
 {
-    // Debugging
-    ROS_INFO("Received new transformed end-effector pose:");
-    ROS_INFO("Position: x=%f, y=%f, z=%f", msg.position.x, msg.position.y, msg.position.z);
-    ROS_INFO("Orientation: x=%f, y=%f, z=%f, w=%f", msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w);
-
     // Convert the msg pose to a KDL::Frame
     KDL::Frame desired_pose;
     tf2::fromMsg(msg, desired_pose);
@@ -311,20 +306,14 @@ void Rx1Ik::rightGripperPoseCallback(const geometry_msgs::Pose& msg)
 
     if (ik_solved)
     {
-        ROS_INFO("New IK solution computed:");
         bool success = true;
         if ((ros::Time::now().toSec() - right_last_ik_time_) < tracking_timeout_) // if it's within tracking_timeout, then the angle change should be smaller than max_angle_change
         {
             for (int i = 0; i < result_joint_positions.rows(); ++i)
             {
-                ROS_INFO("Joint %d: %f", i, result_joint_positions(i));
                 if (abs(right_prev_joint_state_msg_.position[i]-result_joint_positions(i)) > max_angle_change_)
                     success = false;
             }
-        }
-        // Debugging
-        else {
-            ROS_WARN("IK solver failed to find a solution!");
         }
 
         if (success)

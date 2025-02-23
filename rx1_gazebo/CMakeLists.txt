@@ -34,5 +34,6 @@ install(DIRECTORY meshes rviz urdf
 )
 catkin_install_python(PROGRAMS
   scripts/ros_zmq_bridge.py
+  scripts/ik_to_arm.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
