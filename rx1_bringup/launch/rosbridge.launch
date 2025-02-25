@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <launch>
+    <!-- Load network configuration parameters -->
+    <rosparam command="load" file="$(find rx1_bringup)/config/network.yaml" />
+    
     <!-- WebSocket port -->
     <arg name="port" default="9090"/>
     
@@ -10,6 +13,13 @@
         <arg name="max_message_size" value="10000000"/>
     </include>
     
-    <!-- Optional: TF2 Web Publisher -->
-    <node pkg="tf2_web_republisher" type="tf2_web_republisher" name="tf2_web_republisher"/>
+    <!-- Start ZMQ bridge -->
+    <!-- Ensure we're using simulation time -->
+    <param name="/use_sim_time" value="true" />
+    
+    <!-- ZMQ Bridge node -->
+    <node name="ros_zmq_bridge" pkg="rx1_bringup" type="ros_zmq_bridge_rviz.py" output="screen">
+        <!-- Pass the parameters directly to the node -->
+        <rosparam command="load" file="$(find rx1_bringup)/config/network.yaml" />
+    </node>
 </launch>

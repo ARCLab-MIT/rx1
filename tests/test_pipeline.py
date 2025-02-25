@@ -7,7 +7,7 @@ import sys
 def test_ik_poses():
     rospy.init_node('test_ik_poses', anonymous=True)
     
-    # Initialize MoveIt just to get current pose
+    # Initialize MoveIt for getting current pose
     moveit_commander.roscpp_initialize(sys.argv)
     robot = moveit_commander.RobotCommander()
     group = moveit_commander.MoveGroupCommander("right_arm")
@@ -15,88 +15,127 @@ def test_ik_poses():
     # Create publisher for poses
     pose_pub = rospy.Publisher('/right_gripper_pose', PoseStamped, queue_size=1)
     
-    # Get current pose and workspace details
+    # Wait for publisher to be ready
+    rospy.sleep(1.0)
+    
+    # Move to home position first
+    rospy.loginfo("Moving to home position...")
+    group.set_named_target("home")
+    plan_success = group.go(wait=True)
+    group.stop()
+    group.clear_pose_targets()
+    
+    if plan_success:
+        rospy.loginfo("Successfully moved to home position")
+    else:
+        rospy.logwarn("Failed to move to home position")
+        return
+    
+    # Get current pose
     current_pose = group.get_current_pose().pose
     rospy.loginfo(f"Current pose: \n{current_pose}")
     
-    # Increase planning time and tolerance
-    group.set_planning_time(10.0)
-    group.set_goal_position_tolerance(0.01)
-    group.set_goal_orientation_tolerance(0.1)
-    
-    rate = rospy.Rate(0.2)  # 5 seconds between poses
+    # Configuration
+    STEP_SIZE = 0.05  # 2cm steps
+    RATE = 5  # Hz (5 seconds between movements)
+    rate = rospy.Rate(RATE)
+    start_time = rospy.Time.now()
+    duration = rospy.Duration(10)  # Run for 10 seconds
 
-    # Test poses - larger movements to see clear motion
-    test_poses = [
-        # Current position (baseline)
-        {'pos': [current_pose.position.x, 
-                 current_pose.position.y, 
-                 current_pose.position.z],
-         'orient': [current_pose.orientation.x,
-                   current_pose.orientation.y,
-                   current_pose.orientation.z,
-                   current_pose.orientation.w]},
+    # More extensive movement sequence
+    movements = [
+        # Forward and back
+        {'axis': 'x', 'distance': 0.010},   # Move 10cm forward
+        {'axis': 'x', 'distance': -0.010},  # Move back
         
-        # Move 5cm in X (forward)
-        {'pos': [current_pose.position.x + 0.05, 
-                 current_pose.position.y, 
-                 current_pose.position.z],
-         'orient': [current_pose.orientation.x,
-                   current_pose.orientation.y,
-                   current_pose.orientation.z,
-                   current_pose.orientation.w]},
+        # Left and right
+        {'axis': 'y', 'distance': 0.010},   # Move 10cm right
+        {'axis': 'y', 'distance': -0.010},  # Move left
         
-        # Move 5cm in Y (side)
-        {'pos': [current_pose.position.x, 
-                 current_pose.position.y - 0.05, 
-                 current_pose.position.z],
-         'orient': [current_pose.orientation.x,
-                   current_pose.orientation.y,
-                   current_pose.orientation.z,
-                   current_pose.orientation.w]},
+        # Up and down
+        {'axis': 'z', 'distance': 0.010},   # Move 10cm up
+        {'axis': 'z', 'distance': -0.010},  # Move down
         
-        # Move 5cm in Z (up)
-        {'pos': [current_pose.position.x, 
-                 current_pose.position.y, 
-                 current_pose.position.z + 0.05],
-         'orient': [current_pose.orientation.x,
-                   current_pose.orientation.y,
-                   current_pose.orientation.z,
-                   current_pose.orientation.w]},
+        # Diagonal movements
+        {'axis': 'x', 'distance': 0.07},   # Forward
+        {'axis': 'y', 'distance': 0.07},   # Right
+        {'axis': 'x', 'distance': -0.07},  # Back
+        {'axis': 'y', 'distance': -0.07},  # Left
+        
+        # Square movement
+        {'axis': 'x', 'distance': 0.05},   # Forward
+        {'axis': 'y', 'distance': 0.05},   # Right
+        {'axis': 'x', 'distance': -0.05},  # Back
+        {'axis': 'y', 'distance': -0.05},  # Left
+        
+        # Vertical square
+        {'axis': 'z', 'distance': 0.05},   # Up
+        {'axis': 'x', 'distance': 0.05},   # Forward
+        {'axis': 'z', 'distance': -0.05},  # Down
+        {'axis': 'x', 'distance': -0.05},  # Back
     ]
 
-    current_pose_idx = 0
-    while not rospy.is_shutdown():
-        # Get current test pose
-        test_pose = test_poses[current_pose_idx]
+    rospy.loginfo("Starting incremental movements...")
+    current_movement = 0
+    
+    while not rospy.is_shutdown() and (rospy.Time.now() - start_time) < duration:
+        movement = movements[current_movement % len(movements)]
+        axis = movement['axis']
+        total_distance = movement['distance']
+        num_steps = int(abs(total_distance / STEP_SIZE))
+        direction = 1 if total_distance > 0 else -1
         
-        # Create pose target
-        target_pose = PoseStamped()
-        target_pose.header.frame_id = "world"
-        target_pose.header.stamp = rospy.Time.now()
+        rospy.loginfo(f"\nStarting {abs(total_distance*100):.1f}cm movement in {axis} direction")
         
-        # Set position
-        target_pose.pose.position.x = test_pose['pos'][0]
-        target_pose.pose.position.y = test_pose['pos'][1]
-        target_pose.pose.position.z = test_pose['pos'][2]
-        
-        # Set orientation
-        target_pose.pose.orientation.x = test_pose['orient'][0]
-        target_pose.pose.orientation.y = test_pose['orient'][1]
-        target_pose.pose.orientation.z = test_pose['orient'][2]
-        target_pose.pose.orientation.w = test_pose['orient'][3]
-
-        rospy.loginfo("\n" + "="*50)
-        rospy.loginfo(f"Publishing pose {current_pose_idx + 1}/{len(test_poses)}")
-        rospy.loginfo(f"Position: x={target_pose.pose.position.x:.3f}, y={target_pose.pose.position.y:.3f}, z={target_pose.pose.position.z:.3f}")
-        
-        # Publish the pose instead of executing it
-        pose_pub.publish(target_pose)
-        
-        # Move to next pose
-        current_pose_idx = (current_pose_idx + 1) % len(test_poses)
-        
-        rate.sleep()
+        for step in range(num_steps):
+            if (rospy.Time.now() - start_time) >= duration:
+                break
+                
+            # Get current pose for relative movement
+            current_pose = group.get_current_pose()
+            
+            # Create new target pose
+            target_pose = PoseStamped()
+            target_pose.header.frame_id = "world"
+            target_pose.header.stamp = rospy.Time.now()
+            
+            # Copy current pose
+            target_pose.pose = current_pose.pose
+            
+            # Increment the specified axis
+            if axis == 'x':
+                target_pose.pose.position.x += direction * STEP_SIZE
+            elif axis == 'y':
+                target_pose.pose.position.y += direction * STEP_SIZE
+            elif axis == 'z':
+                target_pose.pose.position.z += direction * STEP_SIZE
+            
+            # Log the movement
+            rospy.loginfo(f"Step {step + 1}/{num_steps} along {axis}")
+            rospy.loginfo(f"Target position: x={target_pose.pose.position.x:.3f}, "
+                         f"y={target_pose.pose.position.y:.3f}, "
+                         f"z={target_pose.pose.position.z:.3f}")
+            
+            # Publish the pose
+            pose_pub.publish(target_pose)
+            
+            # Wait for movement to complete
+            rate.sleep()
+            
+        current_movement += 1
+    
+    rospy.loginfo("Movement sequence completed! Returning to home position...")
+    
+    # Return to home position
+    group.set_named_target("home")
+    plan_success = group.go(wait=True)
+    group.stop()
+    group.clear_pose_targets()
+    
+    if plan_success:
+        rospy.loginfo("Successfully returned to home position")
+    else:
+        rospy.logwarn("Failed to return to home position")
 
 if __name__ == '__main__':
     try:

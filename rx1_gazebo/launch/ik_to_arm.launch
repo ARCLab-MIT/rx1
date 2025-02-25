@@ -1,8 +1,12 @@
 <?xml version="1.0"?>
 <launch>
-    <!--    Start the IK to Arm controller test node -->
+    <!-- Start the IK solver node -->
+    <node name="rx1_ik" pkg="rx1_ik" type="rx1_ik_node" output="screen">
+      <rosparam file="$(find rx1_ik)/config/ik_traj.yaml" command="load"/>
+    </node>
+
+    <!-- Start the IK to Arm controller node -->
     <node name="ik_to_arm_controller" pkg="rx1_gazebo" type="ik_to_arm.py" output="screen">
-        <!-- Add any parameters if needed -->
         <param name="update_rate" value="100.0"/>  <!-- Hz -->
     </node>
 </launch>

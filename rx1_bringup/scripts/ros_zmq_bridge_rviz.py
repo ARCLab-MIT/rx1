@@ -1,41 +1,35 @@
 #!/usr/bin/env python3
 import rospy
-from geometry_msgs.msg import Pose, PoseStamped
+from geometry_msgs.msg import Pose  # Changed from PoseStamped to Pose
 from sensor_msgs.msg import JointState
-import moveit_commander
-import sys
 import zmq
+import pickle
+import threading
+from scipy.spatial.transform import Rotation as R
 import cv2
 import base64
 import numpy as np
-import pickle
 import blosc as bl
-import threading
-from scipy.spatial.transform import Rotation as R
+import tf2_ros
 
 class ROSZMQBridge:
     def __init__(self):
         # Initialize ROS node
         rospy.init_node('ros_zmq_bridge', anonymous=True)
         
-        # Initialize MoveIt
-        moveit_commander.roscpp_initialize(sys.argv)
-        self.robot = moveit_commander.RobotCommander()
-        self.group = moveit_commander.MoveGroupCommander("right_arm")
-        
         # Get parameters
         self.host = rospy.get_param('~host', '10.29.190.204')
-        self.ee_pose_port = rospy.get_param('~ee_pose_port', 5555)
-        self.joint_state_port = rospy.get_param('~joint_state_port', 5556)
-        self.sub_port = rospy.get_param('~sub_port', 9118)
+        self.right_ee_port_pub = rospy.get_param('~right_ee_port_pub', 5555)
+        self.right_joint_state_port_pub = rospy.get_param('~right_joint_state_port_pub', 5556)
+        self.right_ee_port_sub = rospy.get_param('~right_ee_port_sub', 9118)
         
         # Initialize ZMQ publishers and subscribers
-        self.ee_pose_pub = ZMQKeypointPublisher(self.host, self.ee_pose_port)
-        self.joint_state_pub = ZMQKeypointPublisher(self.host, self.joint_state_port)
-        self.transformed_pose_sub = ZMQKeypointSubscriber(self.host, self.sub_port, "pose")
+        self.right_ee_pub = ZMQKeypointPublisher(self.host, self.right_ee_port_pub) # Send current pose
+        self.right_arm_joint_states_pub = ZMQKeypointPublisher(self.host, self.right_joint_state_port_pub) # Send joint states
+        self.right_ee_sub = ZMQKeypointSubscriber(self.host, self.right_ee_port_sub, "pose") # Receive transformed pose
         
-        # Subscribe to joint states
-        self.joint_sub = rospy.Subscriber('/joint_states', JointState, self.joint_state_callback)
+        # Subscribe to right arm joint states instead of all joint states
+        self.joint_sub = rospy.Subscriber('/right_arm_joint_states', JointState, self.joint_state_callback)
         
         # Right arm joints
         self.right_arm_joints = [
@@ -48,95 +42,118 @@ class ROSZMQBridge:
             "right_forearm_pitch2forearm_roll_joint"
         ]
         
-        # End effector link name
-        self.ee_link = "right_forearm_roll_link"
-        
         # Publishers
-        self.right_gripper_pub = rospy.Publisher('/right_gripper_pose', PoseStamped, queue_size=10)
+        self.right_gripper_pub = rospy.Publisher('/right_gripper_pose', Pose, queue_size=10)
         
-        rospy.loginfo(f"ZMQ Bridge initialized - Publishing on {self.host}:{self.ee_pose_port} & {self.joint_state_port}")
-        rospy.loginfo(f"Subscribing to transformed poses on {self.host}:{self.sub_port}")
+        # Setup TF2 listener for getting link positions
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+        
+        rospy.loginfo(f"ZMQ Bridge initialized - Publishing on {self.host}:{self.right_ee_port_pub} & {self.right_joint_state_port_pub}")
+        rospy.loginfo(f"Subscribing to transformed poses on {self.host}:{self.right_ee_port_sub}")
+        rospy.loginfo("Subscribing to right arm joint states from /right_arm_joint_states")
 
     def joint_state_callback(self, data):
         try:
-            # Process joint states
+            # Process joint states - only extract positions
             joint_array = []
             for joint_name in self.right_arm_joints:
                 if joint_name in data.name:
                     idx = data.name.index(joint_name)
-                    joint_array.extend([
-                        data.position[idx],
-                        data.velocity[idx],
-                        data.effort[idx] if len(data.effort) > idx else 0.0
-                    ])
+                    # Add position only
+                    joint_array.append(data.position[idx])
             
             if joint_array:  # Only publish if we have data
-                self.joint_state_pub.pub_keypoints(joint_array, "joint_state")
+                self.right_arm_joint_states_pub.pub_keypoints(joint_array, "joint_state")
                 
-                # Get end-effector pose using MoveIt
-                current_pose = self.group.get_current_pose(self.ee_link)
-                
-                # Convert quaternion to axis-angle
-                quat = [
-                    current_pose.pose.orientation.x,
-                    current_pose.pose.orientation.y,
-                    current_pose.pose.orientation.z,
-                    current_pose.pose.orientation.w
-                ]
-                r = R.from_quat(quat)
-                rotvec = r.as_rotvec()
-                
-                # Create array with [x, y, z, rx, ry, rz]
-                ee_array = [
-                    current_pose.pose.position.x,
-                    current_pose.pose.position.y,
-                    current_pose.pose.position.z,
-                    rotvec[0],
-                    rotvec[1],
-                    rotvec[2]
-                ]
-                
-                # Send the position and axis-angle through ZMQ
-                self.ee_pose_pub.pub_keypoints(ee_array, "ee_pose")
-                
-                # Try to receive the transformed pose
                 try:
-                    transformed_data = self.transformed_pose_sub.recv_keypoints(flags=zmq.NOBLOCK)
-                    if transformed_data is not None and len(transformed_data) >= 6:
-                        # Convert back to quaternion for ROS message
-                        position = transformed_data[0:3]
-                        rotation = transformed_data[3:6]
+                    trans = self.tf_buffer.lookup_transform('head_base_link', 'right_forearm_roll_link', rospy.Time())
+                    
+                    # Extract position and orientation
+                    position = [
+                        trans.transform.translation.x,
+                        trans.transform.translation.y,
+                        trans.transform.translation.z
+                    ]
+                    
+                    # Convert quaternion to rotation vector for ZMQ transmission
+                    quat = [
+                        trans.transform.rotation.x,
+                        trans.transform.rotation.y,
+                        trans.transform.rotation.z,
+                        trans.transform.rotation.w
+                    ]
+                    r = R.from_quat(quat)
+                    rotvec = r.as_rotvec()
+                    
+                    # Combine position and rotation vector
+                    ee_pose = position + rotvec.tolist()
+                    
+                    # Publish to ZMQ
+                    self.right_ee_pub.pub_keypoints(ee_pose, "ee_pose")
+                    
+                    # Try to receive the transformed pose
+                    try:
+                        transformed_data = self.right_ee_sub.recv_keypoints(flags=zmq.NOBLOCK)
                         
-                        r_back = R.from_rotvec(rotation)
-                        quat_back = r_back.as_quat()
+                        # Handle dictionary format (what we're actually receiving)
+                        if transformed_data is not None and isinstance(transformed_data, dict):
+                            if 'position' in transformed_data and 'orientation' in transformed_data:
+                                # Create and publish a Pose message
+                                pose_msg = Pose()
+                                
+                                # Set position
+                                pose_msg.position.x = transformed_data['position'][0]
+                                pose_msg.position.y = transformed_data['position'][1]
+                                pose_msg.position.z = transformed_data['position'][2]
+                                
+                                # Set orientation
+                                pose_msg.orientation.x = transformed_data['orientation'][0]
+                                pose_msg.orientation.y = transformed_data['orientation'][1]
+                                pose_msg.orientation.z = transformed_data['orientation'][2]
+                                pose_msg.orientation.w = transformed_data['orientation'][3]
+                                
+                                # Publish the pose
+                                self.right_gripper_pub.publish(pose_msg)
+                                # rospy.loginfo("Published dictionary pose to /right_gripper_pose")
                         
-                        # Create and publish a PoseStamped message
-                        pose_msg = PoseStamped()
-                        pose_msg.header.frame_id = "world"
-                        pose_msg.header.stamp = rospy.Time.now()
-                        
-                        pose_msg.pose.position.x = position[0]
-                        pose_msg.pose.position.y = position[1]
-                        pose_msg.pose.position.z = position[2]
-                        pose_msg.pose.orientation.x = quat_back[0]
-                        pose_msg.pose.orientation.y = quat_back[1]
-                        pose_msg.pose.orientation.z = quat_back[2]
-                        pose_msg.pose.orientation.w = quat_back[3]
-                        
-                        self.right_gripper_pub.publish(pose_msg)
+                        # Handle array format (original expected format)
+                        elif transformed_data is not None and len(transformed_data) >= 6:
+                            # Convert to ROS message
+                            position = transformed_data[0:3]
+                            rotation = transformed_data[3:6]
+                            r_back = R.from_rotvec(rotation)
+                            quat_back = r_back.as_quat()
+                            
+                            # Create and publish a Pose message
+                            pose_msg = Pose()
+                            
+                            pose_msg.position.x = position[0]
+                            pose_msg.position.y = position[1]
+                            pose_msg.position.z = position[2]
+                            pose_msg.orientation.x = quat_back[0]
+                            pose_msg.orientation.y = quat_back[1]
+                            pose_msg.orientation.z = quat_back[2]
+                            pose_msg.orientation.w = quat_back[3]
+                            
+                            self.right_gripper_pub.publish(pose_msg)
+                            rospy.loginfo("Published array pose to /right_gripper_pose")
+                    
+                    except Exception as e:
+                        rospy.logerr(f"Error receiving transformed pose: {e}")
                 
-                except Exception as e:
-                    rospy.logerr(f"Error receiving transformed pose: {e}")
+                except (tf2_ros.LookupException, tf2_ros.ConnectivityException, 
+                        tf2_ros.ExtrapolationException) as e:
+                    rospy.logwarn(f"TF Error: {e}")
                     
         except Exception as e:
             rospy.logerr(f"Error in joint state callback: {e}")
 
     def __del__(self):
         """Cleanup ZMQ publishers and subscribers"""
-        self.ee_pose_pub.stop()
-        self.joint_state_pub.stop()
-        self.transformed_pose_sub.stop()
-        moveit_commander.roscpp_shutdown()
+        self.right_ee_pub.stop()
+        self.right_arm_joint_states_pub.stop()
+        self.right_ee_sub.stop()
 
     def run(self):
         """Keep the node running"""

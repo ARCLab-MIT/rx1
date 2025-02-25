@@ -15,7 +15,8 @@
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>tf</depend>
-  <depend>zmq</depend>
+  <depend>libzmq3-dev</depend>
+  <depend>python3-zmq</depend>
   <depend>moveit_commander</depend>
   <depend>moveit_ros_planning_interface</depend>
 

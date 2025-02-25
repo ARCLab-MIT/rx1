@@ -1,0 +1,29 @@
+# Robot identification
+robot_name: rx1_right
+host_address: '10.29.190.204'
+
+# ZMQ communication ports
+joint_publish_port: 5556
+pose_publish_port: 5555
+pose_subscribe_port: 9118
+
+# Topic names
+right_arm_joints_topic: '/right_arm_joint_states'
+right_gripper_pose_topic: '/right_gripper_pose'
+
+# Robot configuration
+right_arm_joints:
+  - "right_shoul_base2shoul_joint"
+  - "right_shoul2shoul_rot_joint"
+  - "right_arm2armrot_joint"
+  - "right_armrot2elbow_joint"
+  - "right_forearm2forearmrot_joint"
+  - "right_forearmrot2forearm_pitch_joint"
+  - "right_forearm_pitch2forearm_roll_joint"
+
+# End effector link names
+right_ee_link: "right_forearm_roll_link"
+
+# Reference frames
+reference_frame: "head_base_link"  # For rviz bridge
+world_frame: "world"               # For gazebo bridge

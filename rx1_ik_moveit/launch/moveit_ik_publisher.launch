@@ -1,0 +1,7 @@
+<launch>
+    <!-- Add moveit_ik_publisher -->
+    <node name="moveit_ik_publisher" pkg="rx1_ik_moveit" type="moveit_ik_publisher.py" output="screen"
+          launch-prefix="bash -c 'sleep 0; $0 $@' ">
+        <remap from="/right_gripper_pose" to="/right_gripper_pose"/>
+    </node>
+</launch>

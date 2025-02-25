@@ -4,8 +4,8 @@
     <param name="/use_sim_time" value="true" />
     
     <!-- ZMQ Bridge node -->
-    <node name="ros_zmq_bridge" pkg="rx1_gazebo" type="ros_zmq_bridge.py" output="screen">
-        <param name="host" value="10.0.0.55"/>
+    <node name="ros_zmq_bridge" pkg="rx1_gazebo" type="ros_zmq_bridge_rviz.py" output="screen">
+        <param name="host" value="10.29.190.204"/>
         <param name="port" value="5555"/>
     </node>
 </launch>
