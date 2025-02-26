@@ -103,7 +103,7 @@ void Rx1Motor::spin()
         rate.sleep();
         double actual_rate = 1.0 / (ros::Time::now() - last_spin_time_).toSec();
         last_spin_time_ = ros::Time::now();
-        ROS_INFO("[RX1_MOTOR] actual rate is %f", actual_rate);
+        // ROS_INFO("[RX1_MOTOR] actual rate is %f", actual_rate);
     }
 }
 
