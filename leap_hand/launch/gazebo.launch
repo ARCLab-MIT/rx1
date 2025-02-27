@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Launch Gazebo -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused" value="true"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+  </include>
+
+  <!-- Load robot description -->
+  <param name="robot_description" command="$(find xacro)/xacro $(find rx1_description)/urdf/leap_right_inertia.urdf"/>
+
+  <!-- Load controller configurations -->
+  <rosparam file="$(find leap_hand)/config/leap_hand_control.yaml" command="load"/>
+
+  <!-- Spawn robot in Gazebo -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model"
+    args="-urdf -param robot_description -model robot -unpause"
+    output="screen"/>
+
+  <!-- Load and start controllers -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" 
+    args="joint_state_controller right_thumb_controller" output="screen"/>
+
+  <!-- Convert joint states to TF transforms -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+    respawn="false" output="screen">
+    <remap from="/joint_states" to="/robot/joint_states"/>
+  </node>
+</launch>

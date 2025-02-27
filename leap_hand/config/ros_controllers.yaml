@@ -1,0 +1,28 @@
+right_thumb_controller:
+  type: position_controllers/JointTrajectoryController
+  joints:
+    - right_thumb_joint_palm_to_base
+    - right_thumb_joint_base_to_pip
+    - right_thumb_joint_pip_to_dip
+    - right_thumb_joint_dip_to_fingertip
+  gains:
+    right_thumb_joint_palm_to_base:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_thumb_joint_base_to_pip:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_thumb_joint_pip_to_dip:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    right_thumb_joint_dip_to_fingertip:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1

@@ -1,0 +1,10 @@
+controller_list:
+  - name: right_thumb_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - right_thumb_joint_palm_to_base
+      - right_thumb_joint_base_to_pip
+      - right_thumb_joint_pip_to_dip
+      - right_thumb_joint_dip_to_fingertip

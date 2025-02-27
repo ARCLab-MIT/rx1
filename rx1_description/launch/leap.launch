@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="model" default="$(find rx1_description)/urdf/leap_right_inertia.urdf"/>
+  <arg name="rvizconfig" default="$(find rx1_description)/rviz/urdf.rviz" />
+
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(arg model)" />
+
+  <!-- Add joint state publisher GUI to provide joint values -->
+  <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  
+  <!-- Add a static transform publisher from world to base_link with 90 degree rotation around X -->
+  <node pkg="tf" type="static_transform_publisher" name="world_to_base_link" 
+        args="0 0 0 0 0 0 world base_link 100" />
+  
+  <!-- Start RViz with the specified config -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true">
+    <param name="fixed_frame" value="world" />
+  </node>
+
+</launch>
+

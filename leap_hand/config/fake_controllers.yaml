@@ -1,0 +1,13 @@
+controller_list:
+  - name: fake_right_thumb_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - right_thumb_joint_palm_to_base
+      - right_thumb_joint_base_to_pip
+      - right_thumb_joint_pip_to_dip
+      - right_thumb_joint_dip_to_fingertip
+initial:  # Define initial robot poses per group
+#  - group: right_thumb
+#    pose: home
+
+  []

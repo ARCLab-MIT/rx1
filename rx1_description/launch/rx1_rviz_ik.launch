@@ -25,5 +25,10 @@
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
 
+  <!-- IK -->
+  <node name="rx1_ik" pkg="rx1_ik" type="rx1_ik_node" output="screen">
+      <rosparam file="$(find rx1_ik)/config/ik_marker.yaml" command="load"/>
+  </node>
+
 </launch>
 

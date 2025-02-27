@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This does not replace URDF, and is not an extension of URDF.
+    This is a format for representing semantic information about the robot structure.
+    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
+-->
+<robot name="onshape">
+    <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
+    <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
+    <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
+    <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
+    <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
+    <group name="right_thumb">
+        <link name="right_palm_lower"/>
+        <link name="right_thumb_base"/>
+        <link name="right_thumb_pip_link"/>
+        <link name="right_thumb_dip_link"/>
+        <link name="right_thumb_fingertip"/>
+        <joint name="right_thumb_joint_palm_to_base"/>
+        <joint name="right_thumb_joint_base_to_pip"/>
+        <joint name="right_thumb_joint_pip_to_dip"/>
+        <joint name="right_thumb_joint_dip_to_fingertip"/>
+        <chain base_link="right_palm_lower" tip_link="right_thumb_fingertip"/>
+    </group>
+    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
+    <end_effector name="right_thumb_tip" parent_link="right_palm_lower" group="right_thumb"/>
+    <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
+    <disable_collisions link1="right_index_dip_link" link2="right_index_fingertip" reason="Adjacent"/>
+    <disable_collisions link1="right_index_dip_link" link2="right_index_pip_link" reason="Adjacent"/>
+    <disable_collisions link1="right_index_dip_link" link2="right_ring_mcp_link" reason="Never"/>
+    <disable_collisions link1="right_index_dip_link" link2="right_ring_pip_link" reason="Never"/>
+    <disable_collisions link1="right_index_fingertip" link2="right_ring_pip_link" reason="Never"/>
+    <disable_collisions link1="right_index_mcp_link" link2="right_index_pip_link" reason="Adjacent"/>
+    <disable_collisions link1="right_index_mcp_link" link2="right_middle_mcp_link" reason="Never"/>
+    <disable_collisions link1="right_index_mcp_link" link2="right_palm_lower" reason="Adjacent"/>
+    <disable_collisions link1="right_index_mcp_link" link2="right_ring_dip_link" reason="Never"/>
+    <disable_collisions link1="right_index_mcp_link" link2="right_ring_mcp_link" reason="Never"/>
+    <disable_collisions link1="right_index_mcp_link" link2="right_ring_pip_link" reason="Never"/>
+    <disable_collisions link1="right_index_mcp_link" link2="right_thumb_base" reason="Never"/>
+    <disable_collisions link1="right_index_mcp_link" link2="right_thumb_pip_link" reason="Never"/>
+    <disable_collisions link1="right_index_pip_link" link2="right_middle_mcp_link" reason="Never"/>
+    <disable_collisions link1="right_index_pip_link" link2="right_palm_lower" reason="Never"/>
+    <disable_collisions link1="right_index_pip_link" link2="right_ring_dip_link" reason="Never"/>
+    <disable_collisions link1="right_index_pip_link" link2="right_ring_fingertip" reason="Never"/>
+    <disable_collisions link1="right_index_pip_link" link2="right_ring_mcp_link" reason="Never"/>
+    <disable_collisions link1="right_index_pip_link" link2="right_ring_pip_link" reason="Never"/>
+    <disable_collisions link1="right_index_pip_link" link2="right_thumb_base" reason="Never"/>
+    <disable_collisions link1="right_index_pip_link" link2="right_thumb_pip_link" reason="Never"/>
+    <disable_collisions link1="right_middle_dip_link" link2="right_middle_fingertip" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_dip_link" link2="right_middle_pip_link" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_mcp_link" link2="right_middle_pip_link" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_mcp_link" link2="right_palm_lower" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_mcp_link" link2="right_ring_mcp_link" reason="Never"/>
+    <disable_collisions link1="right_middle_mcp_link" link2="right_thumb_base" reason="Never"/>
+    <disable_collisions link1="right_middle_mcp_link" link2="right_thumb_dip_link" reason="Never"/>
+    <disable_collisions link1="right_middle_mcp_link" link2="right_thumb_pip_link" reason="Never"/>
+    <disable_collisions link1="right_middle_pip_link" link2="right_palm_lower" reason="Never"/>
+    <disable_collisions link1="right_middle_pip_link" link2="right_ring_mcp_link" reason="Never"/>
+    <disable_collisions link1="right_middle_pip_link" link2="right_thumb_base" reason="Never"/>
+    <disable_collisions link1="right_middle_pip_link" link2="right_thumb_pip_link" reason="Never"/>
+    <disable_collisions link1="right_palm_lower" link2="right_ring_mcp_link" reason="Adjacent"/>
+    <disable_collisions link1="right_palm_lower" link2="right_ring_pip_link" reason="Never"/>
+    <disable_collisions link1="right_palm_lower" link2="right_thumb_base" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_dip_link" link2="right_ring_fingertip" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_dip_link" link2="right_ring_pip_link" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_dip_link" link2="right_thumb_base" reason="Never"/>
+    <disable_collisions link1="right_ring_dip_link" link2="right_thumb_pip_link" reason="Never"/>
+    <disable_collisions link1="right_ring_fingertip" link2="right_thumb_base" reason="Never"/>
+    <disable_collisions link1="right_ring_mcp_link" link2="right_ring_pip_link" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_mcp_link" link2="right_thumb_base" reason="Never"/>
+    <disable_collisions link1="right_ring_mcp_link" link2="right_thumb_dip_link" reason="Never"/>
+    <disable_collisions link1="right_ring_mcp_link" link2="right_thumb_pip_link" reason="Never"/>
+    <disable_collisions link1="right_ring_pip_link" link2="right_thumb_base" reason="Never"/>
+    <disable_collisions link1="right_ring_pip_link" link2="right_thumb_dip_link" reason="Never"/>
+    <disable_collisions link1="right_ring_pip_link" link2="right_thumb_pip_link" reason="Never"/>
+    <disable_collisions link1="right_thumb_base" link2="right_thumb_pip_link" reason="Adjacent"/>
+    <disable_collisions link1="right_thumb_dip_link" link2="right_thumb_fingertip" reason="Adjacent"/>
+    <disable_collisions link1="right_thumb_dip_link" link2="right_thumb_pip_link" reason="Adjacent"/>
+    <disable_collisions link1="right_thumb_fingertip" link2="right_thumb_pip_link" reason="Never"/>
+</robot>
