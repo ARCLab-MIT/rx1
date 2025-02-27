@@ -1,4 +1,4 @@
-servo_port: "/dev/ttyACM0"
+servo_port: "/dev/ttyACM1"
 
 right_arm_initial_positions:
   - 1956
@@ -15,4 +15,5 @@ left_arm_initial_positions:
   - 2190
   - 730
   - 2070
-
+  - 2050
+  - 2050
