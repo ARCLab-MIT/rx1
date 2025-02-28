@@ -32,7 +32,6 @@ Rx1Motor::Rx1Motor(ros::NodeHandle& nh, ros::NodeHandle& priv_nh)
 {
     nh_.param<std::string>("rx1_motor_node/servo_port", servo_port_, "/dev/ttyUSB-arduino4.3");
 
-    // Initialize servos
     if (!sts_servo_.begin(1000000, servo_port_.c_str()))
     {
         ROS_ERROR("[RX1_MOTOR] Failed initialize sts servo port %s!", servo_port_.c_str());
@@ -43,40 +42,16 @@ Rx1Motor::Rx1Motor(ros::NodeHandle& nh, ros::NodeHandle& priv_nh)
         ROS_ERROR("[RX1_MOTOR] Failed initialize scs servo port %s!", servo_port_.c_str());
     }
     
-    // Load initial positions from parameter server
-    std::vector<int> right_arm_initial_positions;
-    std::vector<int> left_arm_initial_positions;
-    
-    if (!nh_.getParam("right_arm_initial_positions", right_arm_initial_positions)) {
-        ROS_WARN("[RX1_MOTOR] Failed to load right arm initial positions, using defaults");
+    for(int i = 0; i < right_arm_servo_ids_.size(); i ++)
+    {
+        u8 id = right_arm_servo_ids_[i];
+        sts_servo_.WritePosEx(id, 2048, 200, 20);
     }
-    
-    if (!nh_.getParam("left_arm_initial_positions", left_arm_initial_positions)) {
-        ROS_WARN("[RX1_MOTOR] Failed to load left arm initial positions, using defaults");
+    for(int i = 0; i < left_arm_servo_ids_.size(); i ++)
+    {
+        u8 id = left_arm_servo_ids_[i];
+        sts_servo_.WritePosEx(id, 2048, 200, 20);
     }
-
-    // Initialize right arm positions
-    if (right_arm_initial_positions.size() == right_arm_servo_ids_.size()) {
-        for(size_t i = 0; i < right_arm_servo_ids_.size(); i++) {
-            u8 id = right_arm_servo_ids_[i];
-            s16 pos = right_arm_initial_positions[i];
-            ROS_INFO("[RX1_MOTOR] Setting right arm ID:%03d to position:%d", id, pos);
-            sts_servo_.WritePosEx(id, pos, 200, 20);
-            ros::Duration(0.1).sleep();  // Small delay between commands
-        }
-    }
-
-    // Initialize left arm positions
-    if (left_arm_initial_positions.size() == left_arm_servo_ids_.size()) {
-        for(size_t i = 0; i < left_arm_servo_ids_.size(); i++) {
-            u8 id = left_arm_servo_ids_[i];
-            s16 pos = left_arm_initial_positions[i];
-            ROS_INFO("[RX1_MOTOR] Setting left arm ID:%03d to position:%d", id, pos);
-            sts_servo_.WritePosEx(id, pos, 200, 20);
-            ros::Duration(0.1).sleep();  // Small delay between commands
-        }
-    }
-    
     for(int i = 0; i < torso_servo_ids_.size(); i ++)
     {
         u8 id = torso_servo_ids_[i];

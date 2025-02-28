@@ -1,19 +1,4 @@
 servo_port: "/dev/ttyACM1"
 
-right_arm_initial_positions:
-  - 1956
-  - 2070
-  - 1924
-  - 3219
-  - 2022
-  - 2047
-  - 2047
-
-left_arm_initial_positions:
-  - 2211
-  - 2063
-  - 2190
-  - 730
-  - 2070
-  - 2050
-  - 2050
+# right_arm_initial_positions: [1956, 2070, 1924, 3800, 2022, 2047, 2047]
+#left_arm_initial_positions: [2211, 2063, 2190, 2300, 2070, 2050, 2050]

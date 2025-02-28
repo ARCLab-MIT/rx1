@@ -1,7 +1,11 @@
 <?xml version="1.0"?>
 
 <launch>
-    <node name="rx1_motor_node" pkg="rx1_motor" type="rx1_motor_node" output="screen">
-        <rosparam command="load" file="$(find rx1_motor)/configs/motors.yaml" />
+    <!-- Load the motor configuration -->
+    <rosparam command="load" file="$(find rx1_motor)/configs/motors.yaml" ns="rx1_motor_node"/>
+
+    <!-- Launch the motor node -->
+    <node pkg="rx1_motor" type="rx1_motor_node" name="rx1_motor_node" output="screen">
+        <rosparam command="load" file="$(find rx1_motor)/configs/motors.yaml"/>
     </node>
 </launch>
