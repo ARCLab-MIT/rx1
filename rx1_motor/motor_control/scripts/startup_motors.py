@@ -103,7 +103,7 @@ class StartupMotors:
         left_success = self.initialize_left_arm()
 
         # Call the standalone control_loop function
-        control_loop()
+        # control_loop()
 
         return right_success and left_success
 

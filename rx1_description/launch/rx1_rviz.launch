@@ -2,6 +2,7 @@
 
 <launch>
 
+  <!-- RViz -->
   <arg name="model" default="$(find rx1_description)/urdf/gazebo_rx1.urdf"/>
   <arg name="gui" default="true" />
   <arg name="rvizconfig" default="$(find rx1_description)/rviz/urdf.rviz" />
@@ -24,14 +25,5 @@
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
-
-  <!-- IK -->
-  <include file="$(find rx1_ik)/launch/rx1_ik_marker.launch"/>
-
-  <!-- Launch the motor node -->
-  <include file="$(find rx1_motor)/launch/rx1_motor.launch"/>
-
-  <!-- Set arms to home position -->
-  <include file="$(find rx1_motor)/launch/set_arm.launch"/>
 
 </launch>

@@ -80,6 +80,10 @@ class STServoWheel:
             print(f"[Servo {self.servo_id}] set_speed({speed}) {direction_str}")
         return self.packet_handler.WriteSpec(self.servo_id, speed, self.moving_acc)
 
+    def set_position_mode(self) -> Tuple[int,int]:
+        """Put this servo into position control mode."""
+        return self.packet_handler.write1ByteTxRx(self.servo_id, 33, 0)  # 33 is STS_MODE
+
 def parse_arrow_key(seq: str) -> str:
     """
     Given a 3-char sequence like '\x1b[A' etc., return 'UP','DOWN','LEFT','RIGHT' or 'ESC'/None.
@@ -206,11 +210,26 @@ def control_loop():
 
     finally:
         # Cleanup
-        wheel.set_speed(0)
+        wheel.set_speed(0)  # Stop the motor
+        
+        # Switch both motors back to position mode
+        original_id = wheel.servo_id  # Store current ID
+        
+        # Switch right motor (ID 14) to position mode
+        wheel.servo_id = 14
+        wheel.set_position_mode()
+        
+        # Switch left motor (ID 24) to position mode
+        wheel.servo_id = 24
+        wheel.set_position_mode()
+        
+        # Restore original ID and close
+        wheel.servo_id = original_id
         wheel.close()
+        
         # Restore terminal
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_attrs)
-        print("Control loop ended.")
+        print("Control loop ended. Motors returned to position mode.")
 
 if __name__ == "__main__":
     control_loop()

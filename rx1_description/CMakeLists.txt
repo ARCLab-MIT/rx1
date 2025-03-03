@@ -32,3 +32,8 @@ include_directories(
 install(DIRECTORY meshes rviz urdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
+
+install(PROGRAMS
+  scripts/cleanup.sh
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
