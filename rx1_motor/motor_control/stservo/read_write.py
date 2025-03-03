@@ -28,11 +28,12 @@ else:
         return ch
 
 sys.path.append("..")
-from STservo_sdk import *                 # Uses STServo SDK library
+from stservo_sdk import *                      # Uses STServo SDK library
 
 # Default setting
+STS_ID                      = 14                 # STServo ID : 1
 BAUDRATE                    = 1000000           # STServo default baudrate : 1000000
-DEVICENAME                  = 'COM11'    # Check which port is being used on your controller
+DEVICENAME                  = '/dev/ttyACM0'    # Check which port is being used on your controller
                                                 # ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
 STS_MINIMUM_POSITION_VALUE  = 0           # STServo will rotate between this value
 STS_MAXIMUM_POSITION_VALUE  = 4095
@@ -75,13 +76,29 @@ while 1:
         break
 
     # Write STServo goal position/moving speed/moving acc
-    for sts_id in range(1, 11):
-        sts_comm_result, sts_error = packetHandler.RegWritePosEx(sts_id, sts_goal_position[index], STS_MOVING_SPEED, STS_MOVING_ACC)
+    sts_comm_result, sts_error = packetHandler.WritePosEx(STS_ID, sts_goal_position[index], STS_MOVING_SPEED, STS_MOVING_ACC)
+    if sts_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(sts_comm_result))
+    elif sts_error != 0:
+        print("%s" % packetHandler.getRxPacketError(sts_error))
+
+    while 1:
+        # Read STServo present position
+        sts_present_position, sts_present_speed, sts_comm_result, sts_error = packetHandler.ReadPosSpeed(STS_ID)
         if sts_comm_result != COMM_SUCCESS:
-            print("%s" % packetHandler.getTxRxResult(sts_comm_result))
+            print(packetHandler.getTxRxResult(sts_comm_result))
+        else:
+            print("[ID:%03d] GoalPos:%d PresPos:%d PresSpd:%d" % (STS_ID, sts_goal_position[index], sts_present_position, sts_present_speed))
         if sts_error != 0:
-            print("%s" % packetHandler.getRxPacketError(sts_error))
-    packetHandler.RegAction()
+            print(packetHandler.getRxPacketError(sts_error))
+
+        # Read STServo moving status
+        moving, sts_comm_result, sts_error = packetHandler.ReadMoving(STS_ID)
+        if sts_comm_result != COMM_SUCCESS:
+            print(packetHandler.getTxRxResult(sts_comm_result))
+
+        if moving==0:
+            break
 
     # Change goal position
     if index == 0:

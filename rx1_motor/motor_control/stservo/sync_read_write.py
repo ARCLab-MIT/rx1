@@ -28,7 +28,7 @@ else:
         return ch
 
 sys.path.append("..")
-from STservo_sdk import *                   # Uses STServo SDK library
+from stservo_sdk import *                   # Uses STServo SDK library
 
 # Control table address
 

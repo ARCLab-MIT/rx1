@@ -12,12 +12,21 @@ add_compile_options(-std=c++17)
 find_package(catkin REQUIRED COMPONENTS
   feetech_lib
   roscpp
+  rospy
   sensor_msgs
+  std_msgs
 )
 
 ################################################################################
 # Setup for python modules and scripts
 ################################################################################
+catkin_python_setup()
+
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS feetech_lib roscpp rospy sensor_msgs std_msgs
+)
 
 ################################################################################
 # Declare ROS messages, services and actions
@@ -56,4 +65,11 @@ add_dependencies(rx1_motor_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXP
 target_link_libraries(rx1_motor_node
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
+)
+
+catkin_install_python(PROGRAMS
+  motor_control/scripts/startup_motors.py
+  motor_control/scripts/read.py
+  motor_control/scripts/write.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

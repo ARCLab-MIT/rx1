@@ -1,0 +1,5 @@
+<launch>
+
+    <node name="set_arm" pkg="rx1_motor" type="st.py" output="screen"/>
+
+</launch>
