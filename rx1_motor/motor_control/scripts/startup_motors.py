@@ -14,9 +14,9 @@ sys.path.insert(0, motor_control_dir)  # Add motor_control directory to path fir
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-from write import WriteMotors
-from read import ReadMotors
-from wheel import STServoWheel, control_loop
+from scripts.write import WriteMotors
+from scripts.read import ReadMotors
+from scripts.wheel import STServoWheel, control_loop
 from stservo_sdk.protocol_packet_handler import COMM_SUCCESS
 
 class StartupMotors:
@@ -35,16 +35,6 @@ class StartupMotors:
         # Initialize motor controllers
         self.writer = WriteMotors(device_name=self.config['servo_port'])
         self.reader = ReadMotors(device_name=self.config['servo_port'])
-        
-        # Initialize wheel controllers for elbows
-        self.right_wheel = STServoWheel(
-            servo_id=self.right_elbow_id,
-            port_handler=self.writer.port_handler
-        )
-        self.left_wheel = STServoWheel(
-            servo_id=self.left_elbow_id,
-            port_handler=self.writer.port_handler
-        )
         
         # Position tolerance for verification
         self.position_tolerance = 5  # Acceptable difference between target and actual position
@@ -112,7 +102,8 @@ class StartupMotors:
         right_success = self.initialize_right_arm()
         left_success = self.initialize_left_arm()
 
-        control_loop(self.wheel)
+        # Call the standalone control_loop function
+        control_loop()
 
         return right_success and left_success
 

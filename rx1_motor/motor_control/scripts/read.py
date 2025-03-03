@@ -148,15 +148,15 @@ def main():
             right_angles, left_angles = reader.read_all_angles()
             
             # Display results
-            # print("\nRight Arm Positions:", right_pos)
-            # print("Right Arm Angles (degrees):", right_angles)
-            # print("Left Arm Positions:", left_pos)
-            # print("Left Arm Angles (degrees):", left_angles)
+            print("\nRight Arm Positions:", right_pos)
+            print("Right Arm Angles (degrees):", right_angles)
+            print("Left Arm Positions:", left_pos)
+            print("Left Arm Angles (degrees):", left_angles)
 
             # Print right elbow joint angle:
-            print("Right Elbow Joint Angle (degrees):", right_angles[3])
+            # print("Right Elbow Joint Angle (degrees):", right_angles[3])
             # Print left elbow joint angle:
-            print("Left Elbow Joint Angle (degrees):", left_angles[3])
+            # print("Left Elbow Joint Angle (degrees):", left_angles[3])
             
     except Exception as e:
         print(f"Error: {e}")

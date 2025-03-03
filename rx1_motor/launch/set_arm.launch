@@ -1,5 +1,5 @@
 <launch>
 
-    <node name="set_arm" pkg="rx1_motor" type="st.py" output="screen"/>
-
+    <node name="set_arm" pkg="rx1_motor" type="startup_motors.py" output="screen"/>
+    
 </launch>
