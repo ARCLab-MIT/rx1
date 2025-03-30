@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace rx1_motor
 {
@@ -110,6 +111,19 @@ private:
     const double ACC_CONST_ = 6.526051999582332;
 
     ros::Time last_spin_time_;
+    std::map<u8, ros::Time> last_command_time_;
+    int load_threshold_;
+    int current_threshold_;
+    int temperature_threshold_;
+    bool enable_monitoring_;
+
+    /**
+     * @brief Enables torque for all arm motors
+     * 
+     * Iterates through all arm motor IDs and enables their torques.
+     * Logs warnings if any motor fails to enable.
+     */
+    void enableArmTorques();
 };
 
 } // namespace rx1_motor

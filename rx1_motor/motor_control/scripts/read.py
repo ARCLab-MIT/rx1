@@ -42,7 +42,7 @@ else:
 class ReadMotors:
     def __init__(self, device_name: str = '/dev/ttyACM0', baudrate: int = 1000000):
         # Motor IDs configuration
-        self.right_arm_ids = [i for i in range(11, 18)]
+        self.right_arm_ids = [i for i in range(1, 19)]
         self.left_arm_ids = [i for i in range(21, 28)]
         
         # Position to angle conversion constants

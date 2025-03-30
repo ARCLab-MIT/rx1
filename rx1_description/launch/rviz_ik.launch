@@ -3,7 +3,7 @@
 <launch>
 
   <!-- RViz -->
-  <arg name="model" default="$(find rx1_description)/urdf/gazebo_rx1.urdf"/>
+  <arg name="model" default="$(find rx1_description)/urdf/rx1_test.urdf"/>
   <arg name="gui" default="true" />
   <arg name="rvizconfig" default="$(find rx1_description)/rviz/urdf.rviz" />
 
@@ -25,5 +25,7 @@
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+  <include file="$(find rx1_ik)/launch/rx1_ik_marker.launch" />
 
 </launch>

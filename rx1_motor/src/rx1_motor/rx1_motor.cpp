@@ -42,6 +42,9 @@ Rx1Motor::Rx1Motor(ros::NodeHandle& nh, ros::NodeHandle& priv_nh)
         ROS_ERROR("[RX1_MOTOR] Failed initialize scs servo port %s!", servo_port_.c_str());
     }
     
+    // Enable torque for all arm motors
+    enableArmTorques();
+    
     for(int i = 0; i < right_arm_servo_ids_.size(); i ++)
     {
         u8 id = right_arm_servo_ids_[i];
@@ -81,6 +84,12 @@ Rx1Motor::Rx1Motor(ros::NodeHandle& nh, ros::NodeHandle& priv_nh)
     }
 
     last_spin_time_ = ros::Time::now();
+
+    // Load monitoring parameters
+    priv_nh_.param<int>("load_threshold", load_threshold_, 800);
+    priv_nh_.param<int>("current_threshold", current_threshold_, 1000);
+    priv_nh_.param<int>("temperature_threshold", temperature_threshold_, 65);
+    priv_nh_.param<bool>("enable_monitoring", enable_monitoring_, true);
 }
 
 Rx1Motor::~Rx1Motor()
@@ -109,6 +118,51 @@ void Rx1Motor::spin()
 
 void Rx1Motor::update()
 {
+    if (!enable_monitoring_) return;
+
+    // Add monitoring for each motor
+    for(int i = 0; i < right_arm_servo_ids_.size(); i++) {
+        u8 id = right_arm_servo_ids_[i];
+        
+        // Read load (0-1000 represents voltage percentage)
+        int load = sts_servo_.ReadLoad(id);
+        if (load > load_threshold_) {
+            ROS_WARN("[RX1_MOTOR] High load detected on right arm motor %d: %d%%", id, load/10);
+        }
+        
+        // Read current
+        int current = sts_servo_.ReadCurrent(id);
+        if (current > current_threshold_) {
+            ROS_ERROR("[RX1_MOTOR] Overcurrent detected on right arm motor %d: %dmA", id, current);
+        }
+        
+        // Read temperature
+        // int temp = sts_servo_.ReadTemper(id);
+        // if (temp > temperature_threshold_) {
+        //     ROS_ERROR("[RX1_MOTOR] High temperature on right arm motor %d: %d°C", id, temp);
+        // }
+        
+    }
+    
+    // Similar monitoring for left arm
+    for(int i = 0; i < left_arm_servo_ids_.size(); i++) {
+        u8 id = left_arm_servo_ids_[i];
+        
+        int load = sts_servo_.ReadLoad(id);
+        if (load > load_threshold_) {
+            ROS_WARN("[RX1_MOTOR] High load detected on left arm motor %d: %d%%", id, load/10);
+        }
+        
+        int current = sts_servo_.ReadCurrent(id);
+        if (current > current_threshold_) {
+            ROS_ERROR("[RX1_MOTOR] Overcurrent detected on left arm motor %d: %dmA", id, current);
+        }
+        
+        // int temp = sts_servo_.ReadTemper(id);
+        // if (temp > temperature_threshold_) {
+        //     ROS_ERROR("[RX1_MOTOR] High temperature on left arm motor %d: %d°C", id, temp);
+        // }
+    }
 }
 
 
@@ -173,7 +227,7 @@ void Rx1Motor::rightArmJointStateCallback(const sensor_msgs::JointState::ConstPt
     std::vector<double> arm_accs(right_arm_servo_ids_.size(), ARM_ACC_);
     motorCommand(right_arm_servo_ids_, right_arm_servo_dirs_, right_arm_servo_gears_, joint_positions, arm_speeds, arm_accs);
     //double time_spend = (ros::Time::now() - command_start_time).toSec();
-    //ROS_INFO("[RX1_MOTOR] right arm command time is %f sec", time_spend);
+    // ROS_INFO("[RX1_MOTOR] right arm command time is %f sec", time_spend);
 }
 
 void Rx1Motor::leftArmJointStateCallback(const sensor_msgs::JointState::ConstPtr& msg)
@@ -405,6 +459,9 @@ void Rx1Motor::motorCommand(const std::array<int, N>& joint_ids,
             speeds[i] = 0;
             accs[i] = accs[i] * 10;
         }
+        
+        // Track when we send commands
+        last_command_time_[ids[i]] = ros::Time::now();
     }
     sts_servo_.SyncWritePosEx(ids, length, pos, speeds, accs);
 
@@ -412,6 +469,37 @@ void Rx1Motor::motorCommand(const std::array<int, N>& joint_ids,
     free(pos);
     free(speeds);
     free(accs);
+}
+
+void Rx1Motor::enableArmTorques()
+{
+    // Enable torque for right arm
+    for(int i = 0; i < right_arm_servo_ids_.size(); i++)
+    {
+        u8 id = right_arm_servo_ids_[i];
+        if (sts_servo_.EnableTorque(id, 1) != 0)
+        {
+            ROS_WARN("[RX1_MOTOR] Failed to enable torque for right arm motor %d", id);
+        }
+        else
+        {
+            ROS_DEBUG("[RX1_MOTOR] Enabled torque for right arm motor %d", id);
+        }
+    }
+
+    // Enable torque for left arm
+    for(int i = 0; i < left_arm_servo_ids_.size(); i++)
+    {
+        u8 id = left_arm_servo_ids_[i];
+        if (sts_servo_.EnableTorque(id, 1) != 0)
+        {
+            ROS_WARN("[RX1_MOTOR] Failed to enable torque for left arm motor %d", id);
+        }
+        else
+        {
+            ROS_DEBUG("[RX1_MOTOR] Enabled torque for left arm motor %d", id);
+        }
+    }
 }
 
 } // namespace rx1_motor

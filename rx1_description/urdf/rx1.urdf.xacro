@@ -638,31 +638,65 @@
             <child link="${prefix}_forearm_roll_link" />
         </joint>
 
-        <link name="${prefix}_hand_link">
-            <inertial>
-                <mass value="0.1" />
-                <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
-            </inertial>
-            <visual>
-                <geometry>
-                    <!--box size="0.04 0.02 0.12" /-->
-                    <mesh filename="package://rx1_description/meshes/${prefix}_arm/${prefix}_hand_link.stl"/>
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0"/>
-                <material name="white"/>
-            </visual>
-            <collision>
-                <geometry>
-                    <box size="0.04 0.02 0.12" />
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0"/>
-            </collision>
-        </link>
-        <joint name="${prefix}_forearm_roll2hand_joint" type="fixed">
-            <origin xyz="0 0 -0.1" rpy="0 0 0" />
-            <parent link="${prefix}_forearm_roll_link" />
-            <child link="${prefix}_hand_link" />
-        </joint>
+            <!-- Gripper Base: This will attach to the arm's forearm roll link -->
+    <link name="${prefix}_gripper_base_link">
+        <inertial>
+            <mass value="0.1" />
+            <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="package://rx1_description/meshes/${prefix}_arm/${prefix}_gripper_base_link.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <material name="white"/>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://rx1_description/meshes/${prefix}_arm/${prefix}_gripper_base_link.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+        </collision>
+    </link>
+
+    <!-- Fixed Joint: Attach the gripper base to the forearm roll link -->
+    <joint name="${prefix}_forearm_roll2gripper_base_joint" type="fixed">
+        <origin xyz="0 0 -0.1" rpy="0 0 0" />
+        <parent link="${prefix}_forearm_roll_link" />
+        <child link="${prefix}_gripper_base_link" />
+    </joint>
+
+    <!-- Gripper Finger: The moving part -->
+    <link name="${prefix}_gripper_finger">
+        <inertial>
+            <mass value="0.05" />
+            <inertia ixx="0.5" ixy="0.0" ixz="0.0" iyy="0.5" iyz="0.0" izz="0.5" />
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="package://rx1_description/meshes/${prefix}_arm/${prefix}_gripper_finger.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <material name="white"/>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://rx1_description/meshes/${prefix}_arm/${prefix}_gripper_finger.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+        </collision>
+    </link>
+
+    <!-- Revolute Joint: Connect the gripper base and gripper finger -->
+    <joint name="${prefix}_gripper_joint" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Adjust xyz/rpy so that the axis aligns with your desired hinge location -->
+        <parent link="${prefix}_gripper_base_link" />
+        <child link="${prefix}_gripper_finger" />
+        <axis xyz="0 1 0"/>  <!-- Change the axis if your finger should rotate about a different direction -->
+        <limit effort="${motor_torque}" lower="0" upper="0.04" velocity="${motor_vec}"/>
+        <dynamics damping="0.1" friction="0.1"/>
+    </joint>
+
     
     </xacro:macro>
 

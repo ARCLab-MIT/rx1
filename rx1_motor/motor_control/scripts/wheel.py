@@ -121,38 +121,42 @@ def nonblocking_get_arrow_key() -> str:
     else:
         return None
 
-def control_loop():
+def control_loop(right_id: int = 14, left_id: int = 24):
     """
     Control right or left arm elbow with arrow keys, in a "hold-to-move" manner:
-      - Start controlling right elbow = ID=14
-      - Press LEFT arrow => switch to left elbow (ID=24)
-      - Press RIGHT arrow => switch to right elbow (ID=14)
+      - Start controlling right motor (default ID=14)
+      - Press LEFT arrow => switch to left motor (default ID=24)
+      - Press RIGHT arrow => switch to right motor
       
-      Right elbow logic:
+      Right motor logic:
        - UP => speed=-400 (CW)
        - DOWN => speed=+400 (CCW)
-      Left elbow logic:
+      Left motor logic:
        - UP => speed=+400 (CCW)
        - DOWN => speed=-400 (CW)
        
+      Args:
+          right_id: ID of the right motor (default: 14)
+          left_id: ID of the left motor (default: 24)
+      
       If no key press is detected => speed=0 (stop).
       ESC => exit loop.
     """
-    # We'll have 2 STServoWheel objects, or we can re-use one object by changing servo_id each time.
-    # For simplicity, let's just create one and reassign servo_id.
-    wheel = STServoWheel(servo_id=14, moving_acc=15)
+    # Initialize with right motor ID
+    wheel = STServoWheel(servo_id=right_id, moving_acc=15)
     
     # Terminal setup: Make stdin raw
     old_attrs = termios.tcgetattr(sys.stdin)
     tty.setcbreak(sys.stdin.fileno())
 
-    current_elbow_id = 14  # 'right' by default
+    current_motor_id = right_id  # 'right' by default
     # Put the current servo in wheel mode
-    wheel.servo_id = current_elbow_id
+    wheel.servo_id = current_motor_id
     wheel.set_wheel_mode()
 
     print("\n--- Hold-to-Move Arrow Key Controls ---")
-    print("UP / DOWN => move elbow. LEFT => switch to left elbow, RIGHT => switch to right elbow.")
+    print(f"Controlling motors: Right ID={right_id}, Left ID={left_id}")
+    print("UP / DOWN => move motor. LEFT => switch to left motor, RIGHT => switch to right motor.")
     print()
     print("Press ESC to quit.\n")
 
@@ -165,37 +169,36 @@ def control_loop():
             speed = 0  # default if no arrow or if different key
 
             if key is not None:
-                # We got some arrow key
                 if key == 'ESC':
                     print("ESC pressed => exit.")
                     break
                 elif key == 'LEFT':
-                    # switch to left elbow
-                    current_elbow_id = 24
-                    wheel.servo_id = 24
+                    # switch to left motor
+                    current_motor_id = left_id
+                    wheel.servo_id = left_id
                     wheel.set_wheel_mode()
-                    print("Switched to LEFT elbow (24).")
+                    print(f"Switched to LEFT motor ({left_id}).")
                 elif key == 'RIGHT':
-                    # switch to right elbow
-                    current_elbow_id = 14
-                    wheel.servo_id = 14
+                    # switch to right motor
+                    current_motor_id = right_id
+                    wheel.servo_id = right_id
                     wheel.set_wheel_mode()
-                    print("Switched to RIGHT elbow (14).")
+                    print(f"Switched to RIGHT motor ({right_id}).")
                 elif key == 'UP':
-                    # Move up => depends on which elbow
-                    if current_elbow_id == 14:
-                        # Right elbow => UP => CW => speed=-400
+                    # Move up => depends on which motor
+                    if current_motor_id == right_id:
+                        # Right motor => UP => CW => speed=-400
                         speed = -400
                     else:
-                        # Left elbow => UP => CCW => speed=+400
+                        # Left motor => UP => CCW => speed=+400
                         speed = 400
                 elif key == 'DOWN':
-                    # Move down => depends on which elbow
-                    if current_elbow_id == 14:
-                        # Right elbow => DOWN => CCW => speed=+400
+                    # Move down => depends on which motor
+                    if current_motor_id == right_id:
+                        # Right motor => DOWN => CCW => speed=+400
                         speed = 400
                     else:
-                        # Left elbow => DOWN => CW => speed=-400
+                        # Left motor => DOWN => CW => speed=-400
                         speed = -400
 
             # 3) Set speed
@@ -215,12 +218,12 @@ def control_loop():
         # Switch both motors back to position mode
         original_id = wheel.servo_id  # Store current ID
         
-        # Switch right motor (ID 14) to position mode
-        wheel.servo_id = 14
+        # Switch right motor to position mode
+        wheel.servo_id = right_id
         wheel.set_position_mode()
         
-        # Switch left motor (ID 24) to position mode
-        wheel.servo_id = 24
+        # Switch left motor to position mode
+        wheel.servo_id = left_id
         wheel.set_position_mode()
         
         # Restore original ID and close
@@ -232,4 +235,12 @@ def control_loop():
         print("Control loop ended. Motors returned to position mode.")
 
 if __name__ == "__main__":
-    control_loop()
+    # You can now specify different motor IDs when calling control_loop
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Control two motors with arrow keys')
+    parser.add_argument('--right', type=int, default=11, help='Right motor ID (default: 14)')
+    parser.add_argument('--left', type=int, default=21, help='Left motor ID (default: 24)')
+    
+    args = parser.parse_args()
+    control_loop(right_id=args.right, left_id=args.left)

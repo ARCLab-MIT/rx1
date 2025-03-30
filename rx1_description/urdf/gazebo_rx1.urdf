@@ -9,6 +9,10 @@
     <material name="blue">
         <color rgba="0.0 0.0 1.0 1.0" />
     </material>
+
+    <!-- Add map link -->
+    <link name="map"/>
+
     <link name="base_link">
         <inertial>
             <mass value="5.0" />
@@ -27,6 +31,14 @@
             </geometry>
         </collision>
     </link>
+
+    <!-- Add fixed joint between map and base_link -->
+    <joint name="map_to_base" type="fixed">
+        <parent link="map"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
     <link name="torso_yaw_link">
         <inertial>
             <mass value="5.0" />
